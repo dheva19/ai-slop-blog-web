@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-# Memastikan modul app terdeteksi saat running lokal maupun di Vercel serverless
+# Pastikan folder api dan root ada di sys.path
 api_dir = Path(__file__).resolve().parent
 if str(api_dir) not in sys.path:
     sys.path.insert(0, str(api_dir))
@@ -61,9 +61,4 @@ app.include_router(analytics_router, prefix="/api")
 async def health_check():
     return {"status": "ok", "app": settings.PROJECT_NAME}
 
-# Handler export untuk Vercel Serverless Function (baik ASGI native maupun Mangum fallback)
-try:
-    from mangum import Mangum
-    handler = Mangum(app, lifespan="auto")
-except Exception:
-    handler = app
+# Vercel @vercel/python native WSGI/ASGI mendeteksi variabel `app` secara otomatis
