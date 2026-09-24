@@ -18,11 +18,15 @@ from app.controllers.analytics_controller import router as analytics_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: koneksi mongodb
-    await connect_to_mongo()
+    try:
+        await connect_to_mongo()
+    except Exception as e:
+        print(f"Startup MongoDB warning: {e}")
     yield
-    # Shutdown
-    await close_mongo_connection()
+    try:
+        await close_mongo_connection()
+    except Exception as e:
+        print(f"Shutdown error: {e}")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -57,5 +61,9 @@ app.include_router(analytics_router, prefix="/api")
 async def health_check():
     return {"status": "ok", "app": settings.PROJECT_NAME}
 
-# Handler export untuk Vercel Serverless Function
-handler = app
+# Handler export untuk Vercel Serverless Function (baik ASGI native maupun Mangum fallback)
+try:
+    from mangum import Mangum
+    handler = Mangum(app, lifespan="auto")
+except Exception:
+    handler = app
