@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  FileText, Eye, Heart, MessageSquare, Plus, Trash2, ExternalLink
+  FileText, Eye, Heart, MessageSquare, Plus, Trash2, ExternalLink, Pencil
 } from "lucide-react";
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid
@@ -194,6 +194,11 @@ export const DashboardPage: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
+                    <Link to={`/edit/${post.id}`}>
+                      <Button size="sm" variant="outline" className="h-8 px-2.5 text-xs flex items-center gap-1">
+                        <Pencil className="h-3 w-3" /> Edit
+                      </Button>
+                    </Link>
                     <Link to={`/blog/${post.slug}`}>
                       <Button size="sm" variant="outline" className="h-8 px-2.5 text-xs flex items-center gap-1">
                         <ExternalLink className="h-3 w-3" /> Lihat

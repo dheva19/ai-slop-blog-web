@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { api } from "@/services/api";
 import { useAuth } from "@/services/AuthContext";
 import { Post } from "@/types";
@@ -11,12 +11,33 @@ import { Image, Tag, Send, Save } from "lucide-react";
 export const WriteBlogPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [coverImage, setCoverImage] = useState("");
   const [tagsInput, setTagsInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingPost, setLoadingPost] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      setLoadingPost(true);
+      api
+        .get<Post>(`/posts/${id}`)
+        .then((res) => {
+          setTitle(res.data.title);
+          setContent(res.data.content);
+          setCoverImage(res.data.cover_image || "");
+          setTagsInput((res.data.tags || []).join(", "));
+        })
+        .catch((err) => {
+          alert("Gagal memuat artikel untuk diedit.");
+          console.error(err);
+        })
+        .finally(() => setLoadingPost(false));
+    }
+  }, [id]);
 
   if (!user) {
     return (
@@ -41,13 +62,24 @@ export const WriteBlogPage: React.FC = () => {
         .map((t) => t.trim())
         .filter((t) => t.length > 0);
 
-      const res = await api.post<Post>("/posts", {
-        title,
-        content,
-        cover_image: coverImage || undefined,
-        tags,
-        is_published: publish,
-      });
+      let res;
+      if (id) {
+        res = await api.put<Post>(`/posts/${id}`, {
+          title,
+          content,
+          cover_image: coverImage || undefined,
+          tags,
+          is_published: publish,
+        });
+      } else {
+        res = await api.post<Post>("/posts", {
+          title,
+          content,
+          cover_image: coverImage || undefined,
+          tags,
+          is_published: publish,
+        });
+      }
 
       navigate(`/blog/${res.data.slug}`);
     } catch (err: any) {
@@ -57,10 +89,22 @@ export const WriteBlogPage: React.FC = () => {
     }
   };
 
+  if (loadingPost) {
+    return (
+      <div className="container max-w-4xl mx-auto px-4 py-12 space-y-4 animate-pulse">
+        <div className="h-8 bg-muted rounded w-1/3" />
+        <div className="h-12 bg-muted rounded w-full" />
+        <div className="h-64 bg-muted rounded w-full" />
+      </div>
+    );
+  }
+
   return (
     <div className="container max-w-4xl mx-auto px-4 py-6 md:py-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Tulis Blog Baru</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+          {id ? "Edit Artikel Blog" : "Tulis Blog Baru"}
+        </h1>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Button
             variant="outline"

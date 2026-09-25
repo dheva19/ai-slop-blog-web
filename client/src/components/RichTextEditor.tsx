@@ -5,11 +5,19 @@ import Image from "@tiptap/extension-image";
 import Youtube from "@tiptap/extension-youtube";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
+import TextAlign from "@tiptap/extension-text-align";
+import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import { common, createLowlight } from "lowlight";
 import { Button } from "@/components/ui/button";
 import {
-  Bold, Italic, Strikethrough, Code, Heading1, Heading2,
-  List, ListOrdered, Quote, Image as ImageIcon, Video, Link as LinkIcon, Undo, Redo
+  Bold, Italic, Strikethrough, Code, Heading1, Heading2, Heading3,
+  List, ListOrdered, Quote, Image as ImageIcon, Video, Link as LinkIcon,
+  AlignLeft, AlignCenter, AlignRight, AlignJustify,
+  Undo, Redo
 } from "lucide-react";
+
+// Initialize lowlight with common programming languages
+const lowlight = createLowlight(common);
 
 interface RichTextEditorProps {
   content: string;
@@ -24,7 +32,20 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChang
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        codeBlock: false, // Disables starter-kit basic codeBlock in favor of codeBlockLowlight
+        heading: {
+          levels: [1, 2, 3],
+        },
+      }),
+      CodeBlockLowlight.configure({
+        lowlight,
+        defaultLanguage: "javascript",
+      }),
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+        alignments: ["left", "center", "right", "justify"],
+      }),
       Image.configure({
         allowBase64: true,
         HTMLAttributes: {
@@ -53,6 +74,12 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChang
       onChange(editor.getHTML());
     },
   });
+
+  React.useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content || "");
+    }
+  }, [content, editor]);
 
   if (!editor) {
     return null;
@@ -159,6 +186,61 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChang
             title="Heading 2"
           >
             <Heading2 className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={editor.isActive("heading", { level: 3 }) ? "secondary" : "ghost"}
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            className="h-8 w-8 p-0"
+            title="Heading 3"
+          >
+            <Heading3 className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="w-[1px] h-6 bg-border mx-1 shrink-0" />
+
+        <div className="flex items-center gap-1 shrink-0">
+          <Button
+            type="button"
+            size="sm"
+            variant={editor.isActive({ textAlign: "left" }) ? "secondary" : "ghost"}
+            onClick={() => editor.chain().focus().setTextAlign("left").run()}
+            className="h-8 w-8 p-0"
+            title="Rata Kiri"
+          >
+            <AlignLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={editor.isActive({ textAlign: "center" }) ? "secondary" : "ghost"}
+            onClick={() => editor.chain().focus().setTextAlign("center").run()}
+            className="h-8 w-8 p-0"
+            title="Rata Tengah"
+          >
+            <AlignCenter className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={editor.isActive({ textAlign: "right" }) ? "secondary" : "ghost"}
+            onClick={() => editor.chain().focus().setTextAlign("right").run()}
+            className="h-8 w-8 p-0"
+            title="Rata Kanan"
+          >
+            <AlignRight className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={editor.isActive({ textAlign: "justify" }) ? "secondary" : "ghost"}
+            onClick={() => editor.chain().focus().setTextAlign("justify").run()}
+            className="h-8 w-8 p-0"
+            title="Rata Kanan Kiri (Justify)"
+          >
+            <AlignJustify className="h-4 w-4" />
           </Button>
         </div>
 

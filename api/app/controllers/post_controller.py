@@ -66,6 +66,14 @@ async def get_post_by_slug(
         ua=user_agent
     )
 
+@router.get("/{post_id}", response_model=PostResponse)
+async def get_post_by_id(
+    post_id: str,
+    current_user: Optional[UserResponse] = Depends(get_current_user_optional)
+):
+    current_user_id = current_user.id if current_user else None
+    return await post_service.get_post_by_id(post_id=post_id, current_user_id=current_user_id)
+
 @router.put("/{post_id}", response_model=PostResponse)
 async def update_post(
     post_id: str,

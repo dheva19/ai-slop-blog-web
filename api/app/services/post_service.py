@@ -99,6 +99,16 @@ class PostService:
 
         return await self._format_post_response(post, current_user_id)
 
+    async def get_post_by_id(self, post_id: str, current_user_id: Optional[str] = None) -> PostResponse:
+        post = await self.post_repo.get_by_id(post_id)
+        if not post:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artikel blog tidak ditemukan.")
+
+        if not post.get("is_published", True) and post.get("author_id") != current_user_id:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artikel masih berstatus draft.")
+
+        return await self._format_post_response(post, current_user_id)
+
     async def update_post(self, post_id: str, author_id: str, post_in: PostUpdate) -> PostResponse:
         post = await self.post_repo.get_by_id(post_id)
         if not post:

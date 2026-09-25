@@ -20,6 +20,7 @@ export const App: React.FC = () => {
               <Route path="/" element={<HomePage />} />
               <Route path="/blog/:slug" element={<BlogDetailPage />} />
               <Route path="/write" element={<WriteBlogPage />} />
+              <Route path="/edit/:id" element={<WriteBlogPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
